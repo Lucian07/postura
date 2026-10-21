@@ -1,0 +1,16 @@
+{
+  "name": "Program postură",
+  "short_name": "Postură",
+  "description": "Programul de corectare posturală: 30 de zile, cu timer ghidat, clipuri și calendar.",
+  "lang": "ro",
+  "start_url": "./#azi",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EDF1F0",
+  "theme_color": "#0F7367",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}
