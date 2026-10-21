@@ -187,7 +187,7 @@ const App = (() => {
     let status;
     if (r.done) status = `<p class="status ok">${icon('check')}<span>Ziua de azi e bifată. Bravo!</span></p>`;
     else if (doneNames.length) status = `<p class="status part"><span>Ai făcut: ${doneNames.join(', ')}.${leftNames.length ? ` Mai ai ${leftNames.join(' și ')}.` : ''}</span></p>`;
-    else if (pd < 1) status = '<p class="status"><span>Poți face azi o sesiune de probă, ca să te obișnuiești cu timerul. Se salvează în calendar, dar nu intră în cele 30 de zile.</span></p>';
+    else if (pd < 1) status = '<p class="status"><span>Poți face azi o sesiune de probă, ca să te obișnuiești cu timerul. Se salvează în calendar, dar nu intră în zilele programului.</span></p>';
     else status = '<p class="status"><span>Nu ai bifat încă ziua de azi.</span></p>';
 
     const rows = ['stretch', 'activare'].map(id => {
@@ -216,17 +216,38 @@ const App = (() => {
     const equip = [...new Set(ids.flatMap(id => blockById(id).exercises.map(e => e.equip).filter(Boolean)))];
     const est = estimate(ids);
 
-    const strip = programKeys().map(k => {
-      const cls = Days.isDone(k) ? 'done' : Days.isPartial(k) ? 'partial' : k < t ? 'missed' : 'future';
-      return `<i class="${cls}${k === t ? ' today' : ''}" title="${shortDate(k)} · ziua ${programDay(k)}"></i>`;
-    }).join('');
+    // Harta programului: o coloană pe săptămână (luni–duminică), o etichetă la fiecare lună nouă.
+    const start = parseKey(PROGRAM.start);
+    const firstMonday = addDays(start, -((start.getDay() + 6) % 7));
+    const end = parseKey(programEnd());
+    const weeks = Math.ceil((daysBetween(keyOf(firstMonday), programEnd()) + 1) / 7);
+    let heatCells = '', heatMonths = '', lastMonth = -1;
+    for (let w = 0; w < weeks; w++) {
+      for (let d = 0; d < 7; d++) {
+        const k = keyOf(addDays(firstMonday, w * 7 + d));
+        const pd = programDay(k);
+        if (pd < 1 || pd > PROGRAM.days) { heatCells += '<i class="out"></i>'; continue; }
+        const cls = Days.isDone(k) ? 'done' : Days.isPartial(k) ? 'partial' : k < t ? 'missed' : 'future';
+        heatCells += `<i class="${cls}${k === t ? ' today' : ''}" title="${shortDate(k)} · ziua ${pd}"></i>`;
+      }
+      let mid = addDays(firstMonday, w * 7 + 3);
+      if (mid < start) mid = start;
+      if (mid > end) mid = end;
+      if (mid.getMonth() !== lastMonth) {
+        lastMonth = mid.getMonth();
+        heatMonths += `<span style="grid-column:${w + 1}">${fmt(mid, { month: 'short' }).replace('.', '')}</span>`;
+      }
+    }
 
-    const reminder = Store.data.settings.reminderSet ? '' : `
+    const reminderOk = Store.data.settings.reminderFor === programEnd();
+    const reminder = reminderOk ? '' : `
       <div class="card reminder">
         <span class="reminder-ico">${icon('bell')}</span>
         <div>
           <h3>Memento la 8:00</h3>
-          <p>Pune în calendarul telefonului un memento zilnic la 8:00, pe toate cele 30 de zile ale programului.</p>
+          <p>${Store.data.settings.reminderSet
+            ? `Programul are acum ${PROGRAM.length}. Adaugă din nou memento-ul, ca să primești notificarea de la 8:00 până pe ${shortDate(programEnd())}.`
+            : `Pune în calendarul telefonului un memento zilnic la 8:00, pe toată durata programului (${PROGRAM.length}).`}</p>
           <div class="row">
             <a class="btn primary" href="memento-exercitii-8am.ics" data-action="ics">${icon('calendar')}Adaugă în calendar</a>
             <button type="button" class="btn ghost" data-action="hide-reminder">Am setat deja</button>
@@ -239,7 +260,10 @@ const App = (() => {
         <p class="eyebrow">${longDate(t)}</p>
         <h1>${title}</h1>
         <p class="hero-sub">${PROGRAM.title} · ${shortDate(PROGRAM.start)} – ${shortDate(programEnd())} ${parseKey(programEnd()).getFullYear()}</p>
-        <div class="strip" aria-hidden="true">${strip}</div>
+        <div class="heat" style="--weeks:${weeks}" aria-hidden="true">
+          <div class="heat-months">${heatMonths}</div>
+          <div class="heat-grid">${heatCells}</div>
+        </div>
         <div class="strip-labels"><span>Start ${shortDate(PROGRAM.start)}</span><span>${st.inProgram} din ${PROGRAM.days} zile făcute</span><span>Final ${shortDate(programEnd())}</span></div>
       </div>
       <div class="azi-grid">
@@ -400,7 +424,7 @@ const App = (() => {
     $('#view-calendar').innerHTML = `
       <div class="page-head">
         <h1>Calendar</h1>
-        <p>Apasă pe o zi ca s-o bifezi sau să schimbi ce ai făcut. Cele 30 de zile ale programului au fundal gri.</p>
+        <p>Apasă pe o zi ca s-o bifezi sau să schimbi ce ai făcut. Zilele programului (${PROGRAM.length}, ${shortDate(PROGRAM.start)} – ${shortDate(programEnd())}) au fundal gri.</p>
       </div>
       <div class="cal-layout">
         <div class="card cal-card">
@@ -541,10 +565,12 @@ const App = (() => {
       toast(was ? 'Am debifat ziua de azi.' : 'Am bifat ziua de azi.', { label: 'Anulează', fn: () => { Days.setDone(t, was); render(); } });
     } else if (d.action === 'ics') {
       Store.data.settings.reminderSet = true;
+      Store.data.settings.reminderFor = programEnd();
       Store.save();
       setTimeout(render, 300);
     } else if (d.action === 'hide-reminder') {
       Store.data.settings.reminderSet = true;
+      Store.data.settings.reminderFor = programEnd();
       Store.save();
       render();
     } else if (d.toggleEx) {

@@ -1,5 +1,5 @@
 /* Site-ul merge și fără internet după prima vizită. Mereu încearcă întâi versiunea nouă. */
-const CACHE = 'postura-v1';
+const CACHE = 'postura-v2';
 const FILES = [
   './', 'index.html', 'css/style.css',
   'js/data.js', 'js/core.js', 'js/audio.js', 'js/player.js', 'js/app.js',

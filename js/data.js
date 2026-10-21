@@ -3,7 +3,8 @@
 const PROGRAM = {
   title: 'Program corectare posturală',
   start: '2026-10-22',
-  days: 30,
+  days: 182, // 6 luni: 22 oct 2026 – 21 apr 2027
+  length: '6 luni',
   reminderHour: 8,
 };
 

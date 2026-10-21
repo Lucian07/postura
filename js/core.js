@@ -23,7 +23,7 @@ const Store = (() => {
   const KEY = 'postura.v1';
   const defaults = () => ({
     days: {},
-    settings: { sound: true, voice: true, vibrate: true, volume: 0.8, ready: 10, theme: 'auto', notify: false, reminderSet: false },
+    settings: { sound: true, voice: true, vibrate: true, volume: 0.8, ready: 10, theme: 'auto', notify: false, reminderSet: false, reminderFor: null },
     videos: {},
     weights: {},
     lastNotified: null,

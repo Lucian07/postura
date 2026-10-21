@@ -282,17 +282,23 @@ body::before {
 }
 .hero h1 span { color: var(--muted); font-weight: 700; }
 .hero-sub { color: var(--muted); }
-.strip {
-  display: grid; grid-template-columns: repeat(30, minmax(0, 1fr)); gap: 3px;
-  margin-top: 10px;
+/* Harta celor 6 luni: coloane = săptămâni, rânduri = luni…duminică */
+.heat {
+  display: grid; gap: 4px;
+  margin-top: 12px;
+  max-width: calc(var(--weeks) * 22px);
 }
-.strip i { height: 12px; border-radius: 3px; }
-.strip .future { border: 1px solid var(--line); }
-.strip .missed { background: var(--sunken); }
-.strip .partial { background: color-mix(in srgb, var(--done) 45%, var(--sunken)); }
-.strip .done { background: var(--done); }
-.strip .today { outline: 2px solid var(--ink); outline-offset: 1px; }
-.strip-labels { display: flex; justify-content: space-between; gap: 8px; font-size: 0.8rem; color: var(--muted); }
+.heat-months, .heat-grid { display: grid; grid-template-columns: repeat(var(--weeks), minmax(0, 1fr)); column-gap: 3px; }
+.heat-months span { font-size: 0.72rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.heat-grid { grid-template-rows: repeat(7, auto); grid-auto-flow: column; row-gap: 3px; }
+.heat-grid i { aspect-ratio: 1; border-radius: 3px; }
+.heat-grid .out { visibility: hidden; }
+.heat-grid .future { border: 1px solid var(--line); }
+.heat-grid .missed { background: var(--sunken); }
+.heat-grid .partial { background: color-mix(in srgb, var(--done) 45%, var(--sunken)); }
+.heat-grid .done { background: var(--done); }
+.heat-grid .today { outline: 2px solid var(--ink); outline-offset: 1px; }
+.strip-labels { display: flex; justify-content: space-between; gap: 8px; font-size: 0.8rem; color: var(--muted); max-width: calc(var(--weeks, 27) * 22px); }
 
 .azi-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 18px; align-items: start; }
 .side { display: grid; gap: 18px; }
