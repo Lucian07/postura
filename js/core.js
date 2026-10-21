@@ -26,11 +26,13 @@ const Store = (() => {
     settings: { sound: true, voice: true, vibrate: true, volume: 0.8, ready: 10, theme: 'auto', notify: false, reminderSet: false, reminderFor: null },
     videos: {},
     weights: {},
+    stamps: {},
+    sync: { token: '', dirty: false, lastSync: null },
     lastNotified: null,
   });
   const merge = d => {
     const def = defaults();
-    return { ...def, ...d, settings: { ...def.settings, ...(d && d.settings) } };
+    return { ...def, ...d, settings: { ...def.settings, ...(d && d.settings) }, sync: { ...def.sync, ...(d && d.sync) } };
   };
   let data = defaults();
   let ok = true;
@@ -60,30 +62,26 @@ const Days = {
     const r = this.get(key);
     return !!r && !r.done && (r.stretch || r.activare || !!r.strength);
   },
-  tidy(key) {
-    const r = this.get(key);
-    if (r && !r.done && !r.stretch && !r.activare && !r.strength) delete Store.data.days[key];
-  },
+  // O zi debifată rămâne în listă (cu „at”), ca debifarea să ajungă și pe celelalte dispozitive.
   markBlock(key, blockId) {
     const r = this.ensure(key);
     if (blockById(blockId).strength) r.strength = blockId; else r[blockId] = true;
     if (r.stretch && r.activare) r.done = true;
     r.at = Date.now();
-    Store.save();
+    Sync.changed('days');
   },
   setDone(key, done) {
     const r = this.ensure(key);
     r.done = done;
     r.at = Date.now();
-    this.tidy(key);
-    Store.save();
+    Sync.changed('days');
   },
   toggleBlock(key, blockId) {
     const r = this.ensure(key);
     if (blockById(blockId).strength) r.strength = r.strength === blockId ? null : blockId;
     else r[blockId] = !r[blockId];
-    this.tidy(key);
-    Store.save();
+    r.at = Date.now();
+    Sync.changed('days');
   },
   streaks() {
     const done = Object.keys(Store.data.days).filter(k => this.isDone(k)).sort();

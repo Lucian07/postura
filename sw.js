@@ -1,8 +1,8 @@
 /* Site-ul merge și fără internet după prima vizită. Mereu încearcă întâi versiunea nouă. */
-const CACHE = 'postura-v3';
+const CACHE = 'postura-v4';
 const FILES = [
   './', 'index.html', 'css/style.css',
-  'js/data.js', 'js/core.js', 'js/audio.js', 'js/player.js', 'js/app.js',
+  'js/data.js', 'js/core.js', 'js/sync.js', 'js/audio.js', 'js/player.js', 'js/app.js',
   'icon.svg', 'manifest.webmanifest', 'memento-exercitii-8am.ics',
 ];
 
@@ -19,12 +19,13 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
+  // Doar fișierele site-ului; cererile către GitHub (progresul) și fonturi merg direct.
+  if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
   // no-cache: întreabă serverul de fiecare dată (GitHub Pages ține fișierele 10 min în cache).
   e.respondWith(
     fetch(e.request, { cache: 'no-cache' })
       .then(res => {
-        if (res.ok && new URL(e.request.url).origin === location.origin) {
+        if (res.ok) {
           const copy = res.clone();
           caches.open(CACHE).then(c => c.put(e.request, copy));
         }

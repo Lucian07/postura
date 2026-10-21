@@ -195,14 +195,14 @@ main.wrap { padding-block: 8px 120px; }
 .seg button em { font-style: normal; font-size: 0.66rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--c); }
 .seg button small { font-size: 0.72rem; font-weight: 600; color: var(--muted); }
 
-input[type="url"], select {
+input[type="url"], input[type="password"], select {
   min-height: 46px;
   padding: 8px 12px;
   border-radius: var(--radius-sm);
   border: 1.5px solid var(--line);
   background: var(--surface);
 }
-input[type="url"] { flex: 1 1 220px; min-width: 0; }
+input[type="url"], input[type="password"] { flex: 1 1 220px; min-width: 0; }
 input[type="range"] { accent-color: var(--teal); width: min(220px, 45vw); }
 
 .switch {
@@ -254,6 +254,23 @@ body::before {
 }
 .nav a:hover { color: var(--ink); }
 .nav-top { margin-left: auto; }
+.sync-badge {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--sunken);
+  color: var(--muted);
+  font-size: 0.78rem; font-weight: 700;
+  text-decoration: none; white-space: nowrap;
+}
+.sync-badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.sync-badge[data-state="ok"]::before { background: var(--done); }
+.sync-badge[data-state="syncing"]::before { background: var(--blue); animation: blink 1s ease-in-out infinite; }
+.sync-badge[data-state="offline"]::before { background: var(--orange); }
+.sync-badge[data-state="error"] { color: var(--warn); }
+.sync-badge[data-state="error"]::before { background: var(--warn); }
+.sync-badge:not([hidden]) + .nav-top { margin-left: 12px; }
 .nav-top a[aria-current="page"] { background: var(--ink); color: var(--bg); }
 .nav-bottom { display: none; }
 
@@ -506,8 +523,17 @@ a.clip-alt:hover { border-color: var(--c); }
 .ex-detail > .btn { justify-self: start; }
 .ex-detail .ico, .page-head .ico { width: 1.15em; height: 1.15em; }
 
-.link-form { display: grid; gap: 6px; }
-.link-form label { font-size: 0.9rem; color: var(--muted); }
+.link-form, .token-form { display: grid; gap: 6px; }
+.link-form label, .token-form label { font-size: 0.9rem; color: var(--muted); }
+
+.sync-line { color: var(--muted); }
+.sync-line b { color: var(--ink); }
+.sync-line[data-state="ok"] b { color: var(--done); }
+.sync-line[data-state="error"] b { color: var(--warn); }
+.howto summary { cursor: pointer; font-weight: 700; min-height: 32px; }
+.howto ol { margin: 8px 0 0; padding-left: 1.3em; display: grid; gap: 6px; color: var(--muted); }
+.howto b, .howto a { color: var(--ink); }
+.howto code { font-family: var(--font-mono); font-size: 0.88em; }
 
 .weight {
   display: inline-flex; align-items: center; gap: 10px;

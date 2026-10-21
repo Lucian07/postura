@@ -34,9 +34,12 @@ const Weights = {
     const w = (Store.data.weights[id] ||= { log: {} });
     w.kg = kg;
     w.log[todayKey()] = kg;
-    Store.save();
+    Sync.changed('weights');
   },
 };
+
+// Cheie GitHub „fine-grained”, cu numele și dreptul de scriere precompletate.
+const TOKEN_URL = 'https://github.com/settings/personal-access-tokens/new?name=Postur%C4%83&description=Sincronizare%20progres%20site&target_name=Lucian07&contents=write';
 
 function videoLinks(ex) {
   if (!ex.videos.length) return '<span class="vid none">Fără clip pentru acest exercițiu</span>';
@@ -136,6 +139,7 @@ const App = (() => {
       if (!Player.active) refresh();
     });
     route();
+    Sync.start();
     Reminder.start();
     if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -489,9 +493,38 @@ const App = (() => {
       : Notification.permission === 'granted' && s.notify ? 'Pornite.' : Notification.permission === 'denied' ? 'Blocate din setările browserului.' : 'Oprite.';
     const missing = Object.keys(CLIPS).filter(c => !CLIPS[c]);
     const exFor = clip => BLOCKS.flatMap(b => b.exercises).find(e => e.videos.some(v => v[0] === clip));
+    const syncCard = Sync.canWrite() ? `
+          <p>Pe acest dispozitiv poți bifa. Fiecare bifă se salvează pe GitHub și apare oriunde deschizi site-ul, pe orice telefon sau calculator.</p>
+          <div class="row wrap">
+            <button type="button" class="btn ghost" data-action="sync-now">Sincronizează acum</button>
+            <button type="button" class="btn ghost danger" data-action="sync-forget">Scoate cheia de pe acest dispozitiv</button>
+          </div>` : `
+          <p>Oricine deschide site-ul vede aceleași zile bifate. Ca să poți bifa și de pe acest dispozitiv, lipește aici cheia ta GitHub. O faci o singură dată pe fiecare dispozitiv de pe care bifezi.</p>
+          <details class="howto">
+            <summary>Cum îmi fac cheia (2 minute)</summary>
+            <ol>
+              <li>Deschide <a href="${TOKEN_URL}" target="_blank" rel="noopener">pagina de chei din GitHub</a>, logat ca Lucian07.</li>
+              <li><b>Token name</b>: Postură. <b>Expiration</b>: Custom, cu o dată după 21 aprilie 2027 (sau „No expiration”, dacă apare).</li>
+              <li><b>Repository access</b>: Only select repositories → <b>postura</b>.</li>
+              <li><b>Permissions</b> → Repository permissions → <b>Contents</b>: Read and write.</li>
+              <li>Apasă <b>Generate token</b> și copiază cheia. Începe cu <code>github_pat_</code>.</li>
+            </ol>
+          </details>
+          <form class="token-form" id="token-form">
+            <label for="sync-token">Cheia GitHub</label>
+            <div class="row">
+              <input id="sync-token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_…">
+              <button type="submit" class="btn primary">Conectează</button>
+            </div>
+          </form>`;
     $('#view-setari').innerHTML = `
       <div class="page-head"><h1>Setări</h1></div>
       <div class="settings">
+        <section class="card">
+          <h2>Sincronizare între dispozitive</h2>
+          <div id="sync-status">${syncStatusHTML()}</div>
+          ${syncCard}
+        </section>
         <section class="card">
           <h2>Sunet și voce</h2>
           <label class="set-row" for="set-sound"><span><b>Sunete</b><small>Bip la fiecare fază, numărătoare 3-2-1 și semnal la final.</small></span><input type="checkbox" class="switch" id="set-sound" ${s.sound ? 'checked' : ''}></label>
@@ -529,14 +562,28 @@ const App = (() => {
         </section>
         <section class="card">
           <h2>Datele tale</h2>
-          <p>Bifele se salvează în browserul acesta, pe dispozitivul acesta. Fă din când în când un backup.</p>
+          <p>Bifele se salvează pe acest dispozitiv și, dacă ai pus cheia, pe GitHub. Backup-ul e o copie în plus, într-un fișier.</p>
           <div class="row wrap">
             <button type="button" class="btn ghost" data-action="export">${icon('download')}Exportă backup</button>
             <label class="btn ghost" for="import-file">Importă backup<input type="file" id="import-file" accept="application/json,.json" hidden></label>
-            <button type="button" class="btn ghost danger" data-action="reset">Șterge tot</button>
+            <button type="button" class="btn ghost danger" data-action="reset">Șterge de pe acest dispozitiv</button>
           </div>
         </section>
       </div>`;
+  }
+
+  function syncStatusHTML() {
+    const s = Sync.status();
+    const when = s.lastSync
+      ? ` Ultima sincronizare: ${fmt(new Date(s.lastSync), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}.`
+      : '';
+    return `<p class="sync-line" data-state="${s.state}"><b>${esc(s.short)}</b> · ${esc(s.long)}${when}</p>`;
+  }
+
+  // Doar rândul de stare, ca să nu șteargă ce scrii în câmpul pentru cheie.
+  function refreshSettings() {
+    const el = document.getElementById('sync-status');
+    if (el) el.innerHTML = syncStatusHTML();
   }
 
   function applyTheme() {
@@ -629,7 +676,14 @@ const App = (() => {
       applyTheme();
       Sound.configure(Store.data.settings);
       render();
-      toast('Am șters toate datele.');
+      toast('Am șters datele de pe acest dispozitiv.');
+      Sync.run();
+    } else if (d.action === 'sync-now') {
+      Sync.run().then(() => toast(Sync.status().state === 'ok' ? 'Sincronizat cu GitHub.' : Sync.status().long));
+    } else if (d.action === 'sync-forget') {
+      Sync.forget();
+      render();
+      toast('Am scos cheia. Pe acest dispozitiv doar vezi progresul.');
     }
   }
 
@@ -659,6 +713,25 @@ const App = (() => {
   }
 
   function onSubmit(e) {
+    if (e.target.id === 'token-form') {
+      e.preventDefault();
+      const value = $('#sync-token').value.trim();
+      if (!/^(github_pat_|ghp_)/.test(value)) {
+        toast('Cheia trebuie să înceapă cu github_pat_');
+        return;
+      }
+      toast('Verific cheia…');
+      Sync.setToken(value).then(ok => {
+        if (ok) toast('Gata: acest dispozitiv e conectat. Bifele se salvează pe GitHub.');
+        else {
+          const err = Sync.status().error;
+          Sync.forget();
+          toast(err || 'Cheia nu merge. Verifică pașii și încearcă din nou.');
+        }
+        render();
+      });
+      return;
+    }
     const form = e.target.closest('.link-form');
     if (!form) return;
     e.preventDefault();
@@ -669,13 +742,14 @@ const App = (() => {
       return;
     }
     if (value) Store.data.videos[clip] = value; else delete Store.data.videos[clip];
-    Store.save();
+    Sync.changed('videos');
     toast(value ? `Am salvat linkul pentru clipul ${clip}.` : `Am șters linkul pentru clipul ${clip}.`);
     render();
   }
 
   function exportBackup() {
-    const blob = new Blob([JSON.stringify(Store.data, null, 2)], { type: 'application/json' });
+    const { sync, ...data } = Store.data; // cheia GitHub nu intră în backup
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `postura-backup-${todayKey()}.json`;
@@ -692,7 +766,9 @@ const App = (() => {
       try {
         const d = JSON.parse(reader.result);
         if (!d || typeof d.days !== 'object') throw new Error();
-        Store.replace(d);
+        Store.replace({ ...d, sync: Store.data.sync });
+        Store.data.stamps = { weights: Date.now(), videos: Date.now() };
+        Sync.changed('days');
         sel = null;
         applyTheme();
         Sound.configure(Store.data.settings);
@@ -709,10 +785,10 @@ const App = (() => {
     const sheet = $('#sheet');
     sheet.innerHTML = `
       <div class="sheet-in">
-        <h3>Ștergi toate datele?</h3>
-        <p>Dispar bifele din calendar, linkurile adăugate și setările. Nu se poate anula.</p>
+        <h3>Ștergi datele de pe acest dispozitiv?</h3>
+        <p>Dispar bifele salvate aici, linkurile adăugate, setările și cheia GitHub. Ce e deja salvat pe GitHub rămâne și revine la următoarea sincronizare.</p>
         <div class="row">
-          <button type="button" class="btn primary danger-fill" data-action="confirm-reset">Șterge tot</button>
+          <button type="button" class="btn primary danger-fill" data-action="confirm-reset">Șterge</button>
           <button type="button" class="btn ghost" data-action="close-sheet">Renunță</button>
         </div>
       </div>`;
@@ -728,7 +804,7 @@ const App = (() => {
     toastTimer = setTimeout(() => { el.hidden = true; }, action ? 6000 : 3500);
   }
 
-  return { init, refresh, toast };
+  return { init, refresh, refreshSettings, toast };
 })();
 
 document.addEventListener('DOMContentLoaded', App.init);
