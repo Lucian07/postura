@@ -1,5 +1,5 @@
 /* Site-ul merge și fără internet după prima vizită. Mereu încearcă întâi versiunea nouă. */
-const CACHE = 'postura-v2';
+const CACHE = 'postura-v3';
 const FILES = [
   './', 'index.html', 'css/style.css',
   'js/data.js', 'js/core.js', 'js/audio.js', 'js/player.js', 'js/app.js',
@@ -20,8 +20,9 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  // no-cache: întreabă serverul de fiecare dată (GitHub Pages ține fișierele 10 min în cache).
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, { cache: 'no-cache' })
       .then(res => {
         if (res.ok && new URL(e.request.url).origin === location.origin) {
           const copy = res.clone();
