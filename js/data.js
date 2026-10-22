@@ -24,10 +24,6 @@ const contractStretch = s => [
   ['Contracție', s, 'effort', 'Încordezi mușchiul întins'],
   ['Întindere', s, 'release', 'Te relaxezi și intri mai adânc'],
 ];
-const contractRelax = s => [
-  ['Contracție', s, 'effort', 'Încordezi'],
-  ['Relaxare', s, 'release', 'Te relaxezi'],
-];
 const goBack = (s, a = 'Mergi', b = 'Revii') => [[a, s, 'effort', ''], [b, s, 'release', '']];
 const hold = s => [['Ții', s, 'hold', 'Stai nemișcat în întindere']];
 
@@ -49,7 +45,7 @@ const BLOCKS = [
         sets: [1, 1], reps: [5, 5], repsText: '5', tempoText: '5 sec contracție → 5 sec întindere',
         phases: contractStretch(5), videos: [['04']] },
       { id: '05', name: 'Pec minor stretch pe saltea', equip: 'Saltea',
-        sets: [1, 1], reps: [5, 5], repsText: '5', tempoText: '5 sec contracție → 5 sec întindere',
+        sets: [1, 1], reps: [5, 5], sides: true, repsText: '5 / parte', tempoText: '5 sec contracție → 5 sec întindere',
         phases: contractStretch(5), videos: [['05']] },
       { id: '06', name: 'Trapez', warn: 'Doar partea STÂNGĂ',
         sets: [1, 1], reps: [5, 5], repsText: '5', tempoText: '5 sec contracție → 5 sec întindere',
@@ -58,7 +54,7 @@ const BLOCKS = [
         sets: [1, 1], reps: [1, 2], repGap: 10, repsText: '1–2', tempoText: 'Ții 60 sec',
         phases: hold(60), videos: [['07']] },
       { id: '08', name: 'Hip flexor stretch la perete', note: 'La perete sau pe canapea',
-        sets: [1, 1], reps: [1, 1], repsText: '1', tempoText: 'Ții 60 sec',
+        sets: [1, 1], reps: [1, 1], sides: true, repsText: '1 / parte', tempoText: 'Ții 60 sec',
         phases: hold(60), videos: [['08']] },
       { id: '09', name: 'Adductor stretch',
         sets: [1, 1], reps: [20, 20], sides: true, repsText: '20 / parte', tempoText: '3 sec',
@@ -76,11 +72,12 @@ const BLOCKS = [
     when: 'Zilnic · după stretching / înainte de antrenament', clips: '12–18', rest: 30, restText: 'Pauză 30 sec între seturi',
     exercises: [
       { id: '12', name: 'Rotat umeri în perete',
-        sets: [1, 2], reps: [5, 5], repsText: '5', tempoText: '5 sec – 5 sec',
+        sets: [1, 2], reps: [5, 5], sides: true, repsText: '5 / parte', tempoText: '5 sec – 5 sec',
         phases: goBack(5), videos: [['12']] },
       { id: '13', name: 'Vacuum abdominal',
-        sets: [1, 2], reps: [10, 10], repsText: '10', tempoText: '5 sec contracție → 5 sec relaxare',
-        phases: contractRelax(5), videos: [['13']] },
+        sets: [1, 2], reps: [10, 10], repsText: '10', tempoText: '5 sec tragi – 5 sec menții – 5 sec relaxare',
+        phases: [['Tragi', 5, 'effort', 'Tragi abdomenul'], ['Menții', 5, 'hold', 'Ții abdomenul tras'], ['Relaxare', 5, 'release', 'Te relaxezi']],
+        videos: [['13']] },
       { id: '14', name: 'Lower abdominal', note: 'Variantă la perete: clipul 15',
         sets: [1, 2], reps: [15, 20], repsText: '15–20', tempoText: '3 sec – 3 sec',
         phases: goBack(3), videos: [['14', 'Varianta 1'], ['15', 'La perete']] },
