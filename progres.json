@@ -3,10 +3,10 @@
  "days": {
   "2026-10-22": {
    "stretch": true,
-   "activare": false,
+   "activare": true,
    "strength": null,
-   "done": false,
-   "at": 1792652770411
+   "done": true,
+   "at": 1792654440806
   }
  },
  "weights": {},
