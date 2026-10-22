@@ -4,9 +4,9 @@
   "2026-10-22": {
    "stretch": true,
    "activare": true,
-   "strength": null,
+   "strength": "s1",
    "done": true,
-   "at": 1792654440806
+   "at": 1792655238799
   }
  },
  "weights": {},
