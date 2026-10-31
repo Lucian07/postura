@@ -38,10 +38,10 @@
   },
   "2026-10-31": {
    "stretch": false,
-   "activare": false,
+   "activare": true,
    "strength": null,
    "done": true,
-   "at": 1793483219647
+   "at": 1793484935077
   }
  },
  "weights": {},
