@@ -46,9 +46,9 @@
   "2026-11-01": {
    "stretch": true,
    "activare": true,
-   "strength": null,
+   "strength": "s1",
    "done": true,
-   "at": 1793564875876
+   "at": 1793565569528
   }
  },
  "weights": {},
