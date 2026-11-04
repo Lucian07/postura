@@ -66,10 +66,10 @@
   },
   "2026-11-04": {
    "stretch": true,
-   "activare": false,
+   "activare": true,
    "strength": null,
-   "done": false,
-   "at": 1793827560255
+   "done": true,
+   "at": 1793828464206
   }
  },
  "weights": {},
