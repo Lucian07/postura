@@ -102,9 +102,9 @@
   "2026-11-15": {
    "stretch": false,
    "activare": true,
-   "strength": null,
+   "strength": "s1",
    "done": false,
-   "at": 1794772139720
+   "at": 1794772541214
   }
  },
  "weights": {},
