@@ -105,6 +105,13 @@
    "strength": "s1",
    "done": false,
    "at": 1794772541214
+  },
+  "2026-11-16": {
+   "stretch": false,
+   "activare": false,
+   "strength": null,
+   "done": true,
+   "at": 1794849566714
   }
  },
  "weights": {},
